@@ -1,11 +1,15 @@
-#include <opencv2/opencv.hpp>   
+#include <opencv2/opencv.hpp>
+#include <opencv2/core/core.hpp>
+#include <opencv2/highgui/highgui.hpp>
 #include <iostream>
-#include <windows.h>
+#include <Windows.h>
 #include <tchar.h>
 #include <stdio.h>
 #include <strsafe.h>
 #include <string>
+#include <string.h>
 #include <vector>
+#include <cstdlib>
 using namespace std;
 using namespace cv;
 #pragma comment(lib,"User32.lib")
@@ -19,6 +23,12 @@ int main(int argc,TCHAR *argv[]) {
 	DWORD dwError=0;
 	
 	vector<string> jpgFileDir;
+
+	int delay=1;
+	TCHAR delayBuffer[MAX_PATH];
+	StringCchCopy(delayBuffer,MAX_PATH,argv[2]);
+	string sDelay=delayBuffer;
+	delay=atoi(sDelay.c_str());
 
 	//Check argument length. If wrong, print usage.
 	if(argc !=4){
@@ -73,7 +83,7 @@ int main(int argc,TCHAR *argv[]) {
 	
 	CvCapture *capture = 0;
 	CvSize size=cvSize(1024,960);//视频帧格式的大小
-	double fps=3;
+	double fps=60;
 	string sdir1=argv[1];
 	string sdir2=argv[3];
 	string sdir=sdir1+"\\"+sdir2;
@@ -89,21 +99,29 @@ int main(int argc,TCHAR *argv[]) {
 	
 	cvNamedWindow("Homework",CV_WINDOW_AUTOSIZE);  
 	for(int i=0;i<n;i++){
-		string sJpgDir = jpgFileDir.back();		
+		int nFrames=0;
+		string sJpgDir = jpgFileDir.back();
 		cout<<sJpgDir<<endl;
+		while(nFrames<(fps*delay)){					
+			
+			
+			IplImage *src;     
+			src = cvLoadImage(sJpgDir.c_str());
+			if(!src)  break;
+			IplImage *src_resize = cvCreateImage(size,8,3); //创建视频文件格式大小的图片		  
+			//cvShowImage("Homework",src);    
+			cvWaitKey(0);
+			cvResize(src,src_resize); 
+			cvWriteFrame(writer,src_resize);
+			//cvWriteFrame(writer,src);
+			//cvDestroyWindow("Homework");  
+			cvReleaseImage(&src);
+			cvReleaseImage(&src_resize); 
+
+			nFrames++;
+		}
+		cout<<n<<endl;
 		jpgFileDir.pop_back();
-		IplImage *src;     
-		src = cvLoadImage(sJpgDir.c_str());
-		if(!src)  break;
-		IplImage *src_resize = cvCreateImage(size,8,3); //创建视频文件格式大小的图片
-		
-		  
-		cvShowImage("Homework",src);    
-		cvWaitKey(0);
-		cvResize(src,src_resize);
-		cvWriteFrame(writer,src_resize);
-		cvDestroyWindow("Homework");  
-		cvReleaseImage(&src);
 	}
 	FindClose(hFind);
     return dwError;
@@ -120,3 +138,5 @@ int main(int argc,TCHAR *argv[]) {
 	*/
  
 }
+
+
