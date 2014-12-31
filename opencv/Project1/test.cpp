@@ -8,6 +8,7 @@
 #include <strsafe.h>
 #include <string>
 #include <string.h>
+#include <cstring>
 #include <vector>
 #include <cstdlib>
 using namespace std;
@@ -16,13 +17,19 @@ using namespace cv;
 
 int main(int argc,TCHAR *argv[]) {
 	WIN32_FIND_DATA ffd;
-	LARGE_INTEGER filesize;
+	//LARGE_INTEGER filesize;
 	TCHAR szDir[MAX_PATH];
-	size_t length_of_arg;
+	//size_t length_of_arg;
 	HANDLE hFind=INVALID_HANDLE_VALUE;
 	DWORD dwError=0;
 	
 	vector<string> jpgFileDir;
+
+	//Check argument length. If wrong, print usage.
+	if(argc !=4){
+		_tprintf(TEXT("\nUsage: %s <directory name> <delay> <AVI name.avi>"),argv[0]);
+		return (-1);
+	}
 
 	int delay=1;
 	TCHAR delayBuffer[MAX_PATH];
@@ -30,11 +37,7 @@ int main(int argc,TCHAR *argv[]) {
 	string sDelay=delayBuffer;
 	delay=atoi(sDelay.c_str());
 
-	//Check argument length. If wrong, print usage.
-	if(argc !=4){
-		_tprintf(TEXT("\nUsage: %s <directory name> <delay> <AVI name.avi>"),argv[0]);
-		return (-1);
-	}
+	//cout<<delay<<endl;
 
 	//Output the parameter input into the system
 	_tprintf(TEXT("\nSource directory is %s\n"),argv[1]);
@@ -71,23 +74,15 @@ int main(int argc,TCHAR *argv[]) {
        }
     }
     while (FindNextFile(hFind, &ffd) != 0);
+	//cout<<jpgFileDir.size()<<endl;
 
-	
-
-	dwError = GetLastError();
-    if (dwError != ERROR_NO_MORE_FILES) {
-       _tprintf(TEXT("FindFirstFile"));
-	}
-
-    
-	
-	CvCapture *capture = 0;
-	CvSize size=cvSize(1024,960);//视频帧格式的大小
-	double fps=60;
+	//CvCapture *capture = 0;
+	CvSize size=cvSize(640,480);//视频帧格式的大小
+	double fps=60.0;
 	string sdir1=argv[1];
 	string sdir2=argv[3];
 	string sdir=sdir1+"\\"+sdir2;
-	cout<<sdir;
+	//cout<<sdir<<endl;
 	CvVideoWriter *writer = cvCreateVideoWriter(
 		sdir.c_str(),
 		CV_FOURCC('M','J','P','G'),
@@ -95,48 +90,35 @@ int main(int argc,TCHAR *argv[]) {
 		size
 	);
 	int n=jpgFileDir.size();
-	//cout<<"aaaa"<<n;
-	
-	cvNamedWindow("Homework",CV_WINDOW_AUTOSIZE);  
+	cout<<"n:"<<n<<endl;
+ // 
 	for(int i=0;i<n;i++){
 		int nFrames=0;
 		string sJpgDir = jpgFileDir.back();
+		IplImage *src; 
+		src = cvLoadImage(sJpgDir.c_str());
+		if(!src)  break;
 		cout<<sJpgDir<<endl;
-		while(nFrames<(fps*delay)){					
-			
-			
-			IplImage *src;     
-			src = cvLoadImage(sJpgDir.c_str());
-			if(!src)  break;
+		while(nFrames<(fps*delay)){								
+		//	//if(!src)  break;
 			IplImage *src_resize = cvCreateImage(size,8,3); //创建视频文件格式大小的图片		  
-			//cvShowImage("Homework",src);    
-			cvWaitKey(0);
+		//	//cvShowImage("Homework",src);    
+		//	//cvWaitKey(0);
 			cvResize(src,src_resize); 
-			cvWriteFrame(writer,src_resize);
-			//cvWriteFrame(writer,src);
-			//cvDestroyWindow("Homework");  
+		//	cvWriteFrame(writer,src_resize);
+			cvWriteFrame(writer,src);
+		//	//cvDestroyWindow("Homework");  
 			cvReleaseImage(&src);
 			cvReleaseImage(&src_resize); 
-
 			nFrames++;
 		}
-		cout<<n<<endl;
+		//cout<<n<<endl;
 		jpgFileDir.pop_back();
 	}
-	FindClose(hFind);
-    return dwError;
-	system("pause");
-
-   /* 
-    IplImage *src;     
-    src = cvLoadImage("desert.jpg");     
-    cvNamedWindow("bvin",CV_WINDOW_AUTOSIZE);    
-    cvShowImage("bvin",src);    
-    cvWaitKey(0);    
-    cvDestroyWindow("bvin");  
-    cvReleaseImage(&src); 
-	*/
- 
+	cvReleaseVideoWriter(&writer);
+	//FindClose(hFind);
+	//system("pause");
+    return 0;
 }
 
 
