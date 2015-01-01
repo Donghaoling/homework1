@@ -78,24 +78,32 @@ int main(int argc,TCHAR *argv[]) {
 	double fps=60.0;
 	string sdir1=argv[1];
 	string sdir2=argv[3];
-	string sdir=sdir1+"\\"+sdir2;
+	string sdir="e:\\images\\"+sdir2;
 	//cout<<sdir<<endl;
 	VideoWriter writer=VideoWriter(sdir.c_str(),CV_FOURCC('M','J','P','G'),60.0,size,TRUE);
 	int n=jpgFileDir.size();
 	cout<<"n:"<<n<<endl;
   
-	for(int i=0;i<n;i++){
+	for(int i = 0;i < fps*delay;i++){
+		//Mat tempfirstPage=imread(jpgFileDir.front());
+		Mat firstPage(size,CV_8UC3);//初始化一个大小为size的Mat
+		//resize(tempfirstPage,firstPage,size,1.0,1.0,INTER_AREA);
+		putText(firstPage,"21421276",Point(120,150),FONT_ITALIC,2,Scalar(0,0,0),3);
+		putText(firstPage,"Haoling Dong",Point(100,350),FONT_ITALIC,2,Scalar(0,0,0),3);
+		writer << firstPage;
+	}
+
+	for(int i=0;i<7;i++){
 		int nFrames=0;
-		string sJpgDir = jpgFileDir.back();
+		string sJpgDir = jpgFileDir[i];
 		Mat src=imread(sJpgDir);
 		cout<<sJpgDir<<endl;
 		while(nFrames<(fps*delay)){								
 			Mat src_resize;
-			resize(src,src_resize,size,1.0,1.0,INTER_AREA);//将视频的大小
+			resize(src,src_resize,size,1.0,1.0,INTER_AREA);//将图片大小调整为视频支持的大小
 			writer<<src_resize;
 			nFrames++;
 		}
-		jpgFileDir.pop_back();
 	}
     return 0;
 }
